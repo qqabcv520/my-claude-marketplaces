@@ -1,0 +1,35 @@
+{
+  "name": "my-claude-marketplaces",
+  "version": "3.1.8",
+  "description": "Claude Code 插件集合，提供项目规范管理、AI Agent 设计模式知识库、文件保护、Codex 集成和智能通知功能",
+  "owner": {
+    "name": "mifan"
+  },
+  "plugins": [
+    {
+      "name": "project-spec",
+      "source": "./plugins/project-spec",
+      "description": "项目规范管理：初始化项目文档结构和创建详细实施计划"
+    },
+    {
+      "name": "file-guard",
+      "source": "./plugins/file-guard",
+      "description": "文件保护插件：防止意外修改和删除项目外文件，智能拦截 Edit 和 Bash rm 操作"
+    },
+    {
+      "name": "claude-notifications",
+      "source": "./plugins/claude-notifications",
+      "description": "智能通知系统：在关键事件发生时发送桌面通知，支持任务完成、代码审查、问题提示等 6 种通知类型"
+    },
+    {
+      "name": "codex",
+      "source": "./plugins/codex",
+      "description": "Codex CLI 集成：通过 codex-debugger agent 自动 debug，通过 /codex:review 命令手动触发代码审查"
+    },
+    {
+      "name": "knowledge-base",
+      "source": "./plugins/knowledge-base",
+      "description": "项目知识库管理：跨会话知识记忆，支持自动提醒查阅/总结、手动搜索添加和 SubAgent 独立检索"
+    }
+  ]
+}

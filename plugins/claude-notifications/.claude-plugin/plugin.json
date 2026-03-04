@@ -1,0 +1,13 @@
+{
+  "name": "claude-notifications",
+  "version": "0.2.4",
+  "description": "在关键事件发生时发送系统通知",
+  "author": {
+    "name": "mifan"
+  },
+  "repository": "https://github.com/qqabcv520/my-claude-marketplaces",
+  "license": "MIT",
+  "keywords": ["notifications", "productivity", "alerts"],
+  "homepage": "https://github.com/qqabcv520/my-claude-marketplaces",
+  "commands": ["./commands/init.md"]
+}

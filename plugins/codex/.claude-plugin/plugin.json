@@ -1,0 +1,9 @@
+{
+  "name": "codex",
+  "version": "1.0.1",
+  "description": "通过 Codex CLI 辅助代码 debug 和 review",
+  "author": {
+    "name": "mifan"
+  },
+  "keywords": ["codex", "debug", "review", "openai"]
+}

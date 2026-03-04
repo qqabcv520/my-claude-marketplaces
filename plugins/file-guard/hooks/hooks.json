@@ -1,0 +1,27 @@
+{
+  "description": "防止意外修改和删除项目外文件",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-edit.js",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-bash.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
