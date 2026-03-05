@@ -87,11 +87,11 @@ my-claude-marketplaces/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace 配置
 ├── plugins/
-│   ├── project-spec/             # 项目规范管理插件 (v1.7.8)
-│   ├── file-guard/               # 文件保护插件 (v1.1.0)
-│   ├── codex/                    # Codex CLI 集成插件 (v1.0.2)
-│   ├── knowledge-base/           # 知识库管理插件 (v0.1.3)
-│   └── claude-notifications/     # 智能通知插件 (v0.2.4)
+│   ├── project-spec/             # 项目规范管理插件
+│   ├── file-guard/               # 文件保护插件
+│   ├── codex/                    # Codex CLI 集成插件
+│   ├── knowledge-base/           # 知识库管理插件
+│   └── claude-notifications/     # 智能通知插件
 ├── docs/                         # 共享文档
 └── CLAUDE.md                     # 本文件
 ```
@@ -100,31 +100,31 @@ my-claude-marketplaces/
 
 ## 插件功能说明
 
-### project-spec（项目规范管理）v1.7.8
+### project-spec（项目规范管理）
 
 - `/ps-init`：初始化项目文档结构
 - `/ps-plan`：交互式计划制定
 - `/ps-exec`：执行计划，支持 subAgent 协调
 - `planning` Skill：自然语言触发的系统化规划
 
-### file-guard（文件保护）v1.1.0
+### file-guard（文件保护）
 
 - PreToolUse Hook：拦截 Edit 和 Bash rm 操作，防止修改项目外文件
 
-### codex（Codex CLI 集成）v1.0.2
+### codex（Codex CLI 集成）
 
 - `/cxreview`：手动触发代码审查
 - `codex` Skill：Codex CLI 使用指导
 - `codex-debugger` Agent：自动 debug
 
-### knowledge-base（知识库管理）v0.1.3
+### knowledge-base（知识库管理）
 
 - `/kb-add`、`/kb-search`、`/kb-index`：知识条目管理
 - `knowledge-management` Skill：知识管理最佳实践
 - `kb-researcher` Agent：独立检索
 - UserPromptSubmit/Stop Hook：自动提醒查阅和总结
 
-### claude-notifications（智能通知）v0.2.4
+### claude-notifications（智能通知）
 
 - `/claude-notifications:init`：初始化通知配置
 - 桌面通知系统，支持任务完成、代码审查等通知类型
