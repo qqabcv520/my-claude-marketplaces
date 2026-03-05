@@ -1,6 +1,6 @@
 {
   "name": "my-claude-marketplaces",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Claude Code 插件集合，提供项目规范管理、AI Agent 设计模式知识库、文件保护、Codex 集成和智能通知功能",
   "owner": {
     "name": "mifan"
@@ -25,6 +25,11 @@
       "name": "codex",
       "source": "./plugins/codex",
       "description": "Codex CLI 集成：通过 codex-debugger agent 自动 debug，通过 /codex:review 命令手动触发代码审查"
+    },
+    {
+      "name": "knowledge-base",
+      "source": "./plugins/knowledge-base",
+      "description": "项目知识库管理：跨会话知识记忆，支持自动提醒查阅/总结、手动搜索添加和 SubAgent 独立检索"
     }
   ]
 }
