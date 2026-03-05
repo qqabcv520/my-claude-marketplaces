@@ -15,6 +15,10 @@ process.stdin.on('data', (chunk) => {
 process.stdin.on('end', () => {
   try {
     const input = JSON.parse(inputData);
+    // 非 bypass 模式下跳过验证，Claude Code 自身会处理权限
+    if (input.permission_mode !== 'bypassPermissions') {
+      return;
+    }
     validateEdit(input);
   } catch (error) {
     denyWithError(`JSON parse error: ${error.message}`);

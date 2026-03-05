@@ -28,6 +28,8 @@
 
 **执行脚本**：`node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-edit.js`
 
+**生效条件**：仅在 bypass permissions 模式下生效。正常权限模式 下 Claude Code 自身会向用户确认，无需额外拦截。
+
 **行为**：
 - 检查 Edit 操作的 `file_path` 是否在当前项目目录内
 - 如果目标文件在项目外，阻止操作并提示用户
@@ -40,6 +42,8 @@
 **类型**：`command`
 
 **执行脚本**：`node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-bash.js`
+
+**生效条件**：仅在 bypass permissions 模式下生效。正常权限模式下 Claude Code 自身会向用户确认，无需额外拦截。
 
 **行为**：
 - 检查 Bash 命令中是否包含 rm 操作

@@ -49,6 +49,7 @@ async function runTests() {
   // 测试 1: 项目内文件应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { file_path: path.join(projectDir, 'test.txt') },
       tool_name: 'Edit'
     };
@@ -69,6 +70,7 @@ async function runTests() {
   // 测试 2: 项目外文件应该询问
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { file_path: 'C:\\Windows\\System32\\hosts' },
       tool_name: 'Edit'
     };
@@ -90,6 +92,7 @@ async function runTests() {
   // 测试 3: 相对路径应该正确处理
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { file_path: './test.txt' },
       tool_name: 'Edit'
     };
@@ -109,6 +112,7 @@ async function runTests() {
   // 测试 4: 空文件路径应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: {},
       tool_name: 'Edit'
     };
@@ -129,6 +133,7 @@ async function runTests() {
   // 测试 5: 无项目目录环境变量应该允许（避免阻塞）
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { file_path: '/tmp/test.txt' },
       tool_name: 'Edit'
     };
@@ -182,6 +187,7 @@ async function runTests() {
   try {
     const claudeDir = path.join(os.homedir(), '.claude', 'plans', 'test.md');
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { file_path: claudeDir },
       tool_name: 'Edit'
     };
@@ -195,6 +201,26 @@ async function runTests() {
     passed++;
   } catch (error) {
     console.log('❌ 测试 7: .claude 目录白名单 - 失败');
+    console.log('   错误:', error.message);
+    failed++;
+  }
+
+  // 测试 8: 非 bypassPermissions 模式下项目外文件也应该跳过验证（静默退出）
+  try {
+    const input = {
+      permission_mode: 'default',
+      tool_input: { file_path: 'C:\\Windows\\System32\\hosts' },
+      tool_name: 'Edit'
+    };
+    const result = await runScript(scriptPath, input, { CLAUDE_PROJECT_DIR: projectDir });
+
+    assert.strictEqual(result.code, 0, '应该返回退出码 0');
+    assert.strictEqual(result.stdout.trim(), '', '非 bypass 模式下应该无输出');
+
+    console.log('✅ 测试 8: 非 bypass 模式跳过验证 - 通过');
+    passed++;
+  } catch (error) {
+    console.log('❌ 测试 8: 非 bypass 模式跳过验证 - 失败');
     console.log('   错误:', error.message);
     failed++;
   }

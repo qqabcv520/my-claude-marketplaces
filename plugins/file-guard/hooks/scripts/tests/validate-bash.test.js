@@ -49,6 +49,7 @@ async function runTests() {
   // 测试 1: 非 rm 命令应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: 'ls /tmp' },
       tool_name: 'Bash'
     };
@@ -69,6 +70,7 @@ async function runTests() {
   // 测试 2: 删除项目内文件应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: `rm ${path.join(projectDir, 'test.txt')}` },
       tool_name: 'Bash'
     };
@@ -89,6 +91,7 @@ async function runTests() {
   // 测试 3: 删除项目外文件应该询问
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: 'rm /tmp/test.txt' },
       tool_name: 'Bash'
     };
@@ -110,6 +113,7 @@ async function runTests() {
   // 测试 4: rm -rf 命令应该正确处理
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: 'rm -rf /tmp/test' },
       tool_name: 'Bash'
     };
@@ -130,6 +134,7 @@ async function runTests() {
   // 测试 5: 多个目标文件（部分在项目外）
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: `rm ${path.join(projectDir, 'test1.txt')} /tmp/test2.txt` },
       tool_name: 'Bash'
     };
@@ -150,6 +155,7 @@ async function runTests() {
   // 测试 6: 空命令应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: {},
       tool_name: 'Bash'
     };
@@ -170,6 +176,7 @@ async function runTests() {
   // 测试 7: 无项目目录环境变量应该允许
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: 'rm /tmp/test.txt' },
       tool_name: 'Bash'
     };
@@ -190,6 +197,7 @@ async function runTests() {
   // 测试 8: rm 命令但无目标（边界情况）
   try {
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: 'rm -rf' },
       tool_name: 'Bash'
     };
@@ -211,6 +219,7 @@ async function runTests() {
   try {
     const claudeDir = path.join(os.homedir(), '.claude', 'plans', 'test.md');
     const input = {
+      permission_mode: 'bypassPermissions',
       tool_input: { command: `rm ${claudeDir}` },
       tool_name: 'Bash'
     };
@@ -257,6 +266,26 @@ async function runTests() {
     passed++;
   } catch (error) {
     console.log('❌ 测试 10: 无效 JSON 输入 - 失败');
+    console.log('   错误:', error.message);
+    failed++;
+  }
+
+  // 测试 11: 非 bypassPermissions 模式下删除项目外文件也应该跳过验证（静默退出）
+  try {
+    const input = {
+      permission_mode: 'default',
+      tool_input: { command: 'rm /tmp/test.txt' },
+      tool_name: 'Bash'
+    };
+    const result = await runScript(scriptPath, input, { CLAUDE_PROJECT_DIR: projectDir });
+
+    assert.strictEqual(result.code, 0, '应该返回退出码 0');
+    assert.strictEqual(result.stdout.trim(), '', '非 bypass 模式下应该无输出');
+
+    console.log('✅ 测试 11: 非 bypass 模式跳过验证 - 通过');
+    passed++;
+  } catch (error) {
+    console.log('❌ 测试 11: 非 bypass 模式跳过验证 - 失败');
     console.log('   错误:', error.message);
     failed++;
   }
