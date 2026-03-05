@@ -26,6 +26,7 @@ class HookHandler {
     // 检查依赖
     const depsOk = checkDependencies();
     if (!depsOk) {
+      console.error('[notify] 依赖缺失，请运行 /notify:init 初始化插件');
       this.outputPermissionDecision('allow');
       process.exit(0);
     }
