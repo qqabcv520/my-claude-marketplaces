@@ -273,7 +273,7 @@ base_branch: [基础分支名，如 main；无 worktree 则留空]
 
 #### 4.3 subAgent 执行流程
 
-使用 Task tool 启动 implement agent（后台运行），传入以下参数：
+使用 Agent tool 启动 `project-spec:implement` subAgent（后台运行），传入以下参数：
 
 - **计划文件路径**（plan.md 的绝对路径）
 - **任务文件路径**（task.md 的绝对路径）
@@ -281,13 +281,13 @@ base_branch: [基础分支名，如 main；无 worktree 则留空]
 - worktree 路径（如有）
 - 当前分支名（如有）
 
-**关键：同一批次的所有 subAgent 必须在单个响应中同时启动。**
+**关键：同一批次的所有 subAgent 必须在单个响应中同时启动（在同一条消息中发出多个 Agent tool 调用）。**
 
 ```
-Task tool:
-- subagent_type: "implement"
-- description: "执行步骤 N：[步骤名称]"
-- prompt: |
+Agent(
+  subagent_type: "project-spec:implement",
+  description: "执行步骤N：[步骤名称]",
+  prompt: "
     计划文件：[plan.md 绝对路径]
     任务文件：[task.md 绝对路径]
     worktree 路径：[worktree 绝对路径，如有]
@@ -295,18 +295,26 @@ Task tool:
 
     请执行以下步骤的任务：
     [步骤内所有任务的描述和文件路径]
-- run_in_background: true
+  ",
+  run_in_background: true
+)
 ```
 
-启动后：
+启动后，Agent tool 会返回 `task_id`，用于后续状态检查。
+
 - 更新 task.md：该步骤所有任务状态 → 🔄，执行方式 → subAgent
 - 主 Agent 立即继续执行自己负责的步骤，不等待
 
-#### 4.4 subAgent 状态检查
+#### 4.4 subAgent 完成处理
 
-- 主 Agent 每完成一个步骤后，非阻塞检查（TaskOutput block=false）所有运行中的 subAgent
-- subAgent 完成后立即更新 task.md 对应任务状态（✅ 或 ❌）
-- 当没有可执行步骤且有 subAgent 运行中时，阻塞等待所有 subAgent 完成（超时 10 分钟）
+后台 subAgent 完成时会**自动通知**主 Agent，无需轮询或主动检查。
+
+- **收到完成通知后**：立即更新 task.md 对应任务状态（✅ 或 ❌）
+- **主 Agent 已无任务可执行，但仍有 subAgent 运行中**：此时使用 `TaskOutput` 阻塞等待：
+  ```
+  TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
+  ```
+- 所有 subAgent 完成后，重新检查依赖图，解锁下一批步骤
 
 ### 第五步：验证与完成
 
@@ -378,11 +386,13 @@ codex exec -o "$REVIEW" "[PROMPT]" --full-auto &> /dev/null && echo "codex revie
 
 启动一个全新的 general-purpose subAgent（不携带主 Agent 上下文）：
 ```
-Task tool:
-- subagent_type: "general-purpose"
-- description: "独立 Review：计划与实现对比"
-- prompt: [PROMPT]
+Agent(
+  subagent_type: "general-purpose",
+  description: "独立Review：计划与实现对比",
+  prompt: "[PROMPT]"
+)
 ```
+Agent 执行完成后直接返回 review 结果。
 
 Review 提示词(PROMPT)示例：
 ```markdown
