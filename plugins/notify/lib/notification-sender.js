@@ -79,7 +79,7 @@ class NotificationSender {
         title: title,
         message: message,
         sound: this.config.sound,
-        wait: false
+        timeout: this.config.cooldown_seconds * 1000,
       };
 
       // 添加图标
