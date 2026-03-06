@@ -68,10 +68,9 @@ class NotificationSender {
     }
 
     // 发送桌面通知（声音由 node-notifier 处理）
-    const projectName = this.getProjectName();
+    const title = this.getProjectName();
     const message = customMessage || defaults.message;
-    const title = `${defaults.title} · ${projectName}`;
-    await this.sendDesktopNotification(title, message);
+    await this.sendDesktopNotification(title, `${defaults.title} ${message}`);
   }
 
   async sendDesktopNotification(title, message) {

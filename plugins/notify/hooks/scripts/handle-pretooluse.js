@@ -10,9 +10,9 @@ async function main() {
   const sessionId = hookData.session_id || 'default';
 
   if (toolName === 'ExitPlanMode') {
-    await handler.sendNotification('plan_ready', sessionId);
+    handler.sendNotification('plan_ready', sessionId);
   } else if (toolName === 'AskUserQuestion') {
-    await handler.sendNotification('question', sessionId);
+    handler.sendNotification('question', sessionId);
   }
 }
 

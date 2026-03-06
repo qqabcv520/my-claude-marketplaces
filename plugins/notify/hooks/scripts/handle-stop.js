@@ -26,7 +26,7 @@ async function main() {
   const notificationType = await analyzer.analyzeConversationFile(transcriptFile);
 
   if (notificationType) {
-    await handler.sendNotification(notificationType, sessionId);
+    handler.sendNotification(notificationType, sessionId);
     handler.dedup.cleanup();
   }
 }
