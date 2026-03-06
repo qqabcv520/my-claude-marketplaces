@@ -129,34 +129,56 @@ POST /api/resource
 
 ---
 
-## 5. 执行步骤
+## 5. 执行步骤> 每个步骤必须自包含：假设执行者对代码库零了解，仅凭本计划即可准确执行。
+> 禁止用描述代替代码（如"添加验证逻辑"），必须给出完整的、可直接使用的代码片段。
 
 ### 步骤1: [步骤名称]
 
 **目标：** [步骤目标]
 
-**操作：**
-1. [具体操作，包含文件路径和操作类型]
-2. [具体操作]
-
 **涉及文件：**
-- `path/to/file` — [新增/修改/删除] — [操作说明]
+- 新增: `exact/path/to/new-file.ts`
+- 修改: `exact/path/to/existing.ts`
+- 测试: `tests/exact/path/to/test.ts`
+
+**操作：**
+
+1. 在 `exact/path/to/existing.ts` 中 [具体位置描述，如"在 `export class Foo` 类内末尾"] 添加：
+
+```typescript
+// 完整的、可直接使用的代码
+function example(): string {
+  return "hello";
+}
+```
+
+2. 创建 `exact/path/to/new-file.ts`：
+
+```typescript
+// 完整的文件内容
+export function newFeature(): void {
+  // ...
+}
+```
 
 **验证：**
-- [如何验证此步骤完成]
+- 运行: `npm test -- tests/exact/path/to/test.ts`
+- 预期: 所有测试通过
 
 ### 步骤2: [步骤名称]
 
 **目标：** [步骤目标]
 
-**操作：**
-1. [具体操作]
-
 **涉及文件：**
-- `path/to/file` — [新增/修改/删除] — [操作说明]
+- 修改: `exact/path/to/file.ts`
+
+**操作：**
+
+1. [具体操作，包含完整代码片段]
 
 **验证：**
-- [如何验证此步骤完成]
+- 运行: `[精确的验证命令]`
+- 预期: `[预期输出或结果]`
 
 ### 步骤依赖
 
