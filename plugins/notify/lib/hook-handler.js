@@ -66,16 +66,15 @@ class HookHandler {
    * 发送通知
    * @param {string} type - 通知类型
    * @param {string} sessionId - 会话 ID
-   * @param {string} customMessage - 自定义消息（可选）
    */
-  async sendNotification(type, sessionId, customMessage = null) {
+  async sendNotification(type, sessionId) {
     // 检查去重
     if (this.dedup.shouldSkip(type, sessionId)) {
       return;
     }
 
     // 发送通知
-    await this.sender.send(type, customMessage);
+    await this.sender.send(type);
 
     // 记录去重
     this.dedup.record(type, sessionId);

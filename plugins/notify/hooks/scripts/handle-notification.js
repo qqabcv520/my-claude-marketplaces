@@ -10,7 +10,7 @@ async function main() {
   const sessionId = hookData.session_id || 'default';
 
   if (hookData.notification_type === 'permission_prompt') {
-    handler.sendNotification('question', sessionId, '需要你的授权');
+    handler.sendNotification('permission', sessionId);
   }
 }
 

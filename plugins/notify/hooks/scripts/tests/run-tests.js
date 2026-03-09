@@ -9,7 +9,8 @@ const path = require('path');
 
 const tests = [
   'test-state-analyzer.js',
-  'test-dedup-manager.js'
+  'test-dedup-manager.js',
+  'test-handle-stop.js'
 ];
 
 async function runTest(testFile) {

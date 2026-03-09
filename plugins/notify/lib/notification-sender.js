@@ -13,30 +13,13 @@ class NotificationSender {
    */
   getNotificationDefaults(notificationType) {
     const defaults = {
-      task_complete: {
-        title: '✅ 任务完成',
-        message: 'Claude 已完成任务'
-      },
-      review_complete: {
-        title: '🔍 审查完成',
-        message: 'Claude 已完成代码审查'
-      },
-      question: {
-        title: '❓ Claude 有问题',
-        message: 'Claude 需要你的回答'
-      },
-      plan_ready: {
-        title: '📋 计划就绪',
-        message: 'Claude 已准备好实施计划'
-      },
-      session_limit: {
-        title: '⏱️ 会话限制',
-        message: '会话已达到限制'
-      },
-      api_error: {
-        title: '🔴 API 错误',
-        message: '需要重新登录'
-      }
+      task_complete: '✅ 任务完成',
+      review_complete: '🔍 审查完成',
+      question: '❓️ 发起提问',
+      permission: '❗️ 权限请求',
+      plan_ready: '📋 计划就绪',
+      session_limit: '⏱️ 会话限制',
+      api_error: '🔴 API 错误'
     };
 
     return defaults[notificationType] || null;
@@ -50,7 +33,7 @@ class NotificationSender {
     return path.basename(cwd);
   }
 
-  async send(notificationType, customMessage = null) {
+  async send(notificationType) {
     // 检查通知是否启用
     if (!this.config.enabled) {
       return;
@@ -61,16 +44,14 @@ class NotificationSender {
       return;
     }
 
-    const defaults = this.getNotificationDefaults(notificationType);
-    if (!defaults) {
+    const message = this.getNotificationDefaults(notificationType);
+    if (!message) {
       console.error('Unknown notification type:', notificationType);
       return;
     }
 
-    // 发送桌面通知（声音由 node-notifier 处理）
     const title = this.getProjectName();
-    const message = customMessage || defaults.message;
-    await this.sendDesktopNotification(title, `${defaults.title} ${message}`);
+    await this.sendDesktopNotification(title, message);
   }
 
   async sendDesktopNotification(title, message) {

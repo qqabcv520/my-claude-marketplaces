@@ -17,70 +17,93 @@ function testStateAnalyzer() {
 
   const analyzer = new StateAnalyzer();
 
-  // 测试 1: 检测任务完成（有主动工具）
-  const messages1 = [
-    {
-      role: 'assistant',
-      tool_uses: [{ name: 'Write' }],
-      content: 'Writing file...'
-    },
-    {
-      role: 'assistant',
-      content: 'Task completed'
-    }
-  ];
-  const result1 = analyzer.analyzeMessages(messages1);
-  assert(result1 === 'task_complete', '应该检测到任务完成');
-  console.log('✅ 测试 1 通过: 检测任务完成');
+  // ---- normalizeEntry ----
 
-  // 测试 2: 检测审查完成（只有只读工具）
-  const messages2 = [
-    {
-      role: 'assistant',
-      tool_uses: [{ name: 'Read' }, { name: 'Grep' }],
-      content: 'After analyzing the code, I found that...'
-    },
-    {
-      role: 'assistant',
-      content: 'The implementation looks good. Here are my findings: ' + 'x'.repeat(300)
-    }
-  ];
-  const result2 = analyzer.analyzeMessages(messages2);
-  assert(result2 === 'review_complete', '应该检测到审查完成');
-  console.log('✅ 测试 2 通过: 检测审查完成');
+  // 测试 1: 跳过非消息条目
+  const snapshot = { type: 'file-history-snapshot', messageId: 'abc', snapshot: {} };
+  assert(analyzer.normalizeEntry(snapshot) === null, '应跳过 file-history-snapshot');
+  console.log('✅ 测试 1 通过: 跳过非消息条目');
 
-  // 测试 3: 检测会话限制
-  const messages3 = [
-    {
-      role: 'system',
-      content: 'Session limit reached. Please start a new session.'
-    }
-  ];
-  const result3 = analyzer.analyzeMessages(messages3);
-  assert(result3 === 'session_limit', '应该检测到会话限制');
-  console.log('✅ 测试 3 通过: 检测会话限制');
-
-  // 测试 4: 检测 API 错误
-  const messages4 = [
-    {
-      role: 'system',
-      content: 'API Error: 401 Unauthorized. Please run /login to authenticate.'
-    }
-  ];
-  const result4 = analyzer.analyzeMessages(messages4);
-  assert(result4 === 'api_error', '应该检测到 API 错误');
-  console.log('✅ 测试 4 通过: 检测 API 错误');
-
-  // 测试 5: 无需通知的情况
-  const messages5 = [
-    {
+  // 测试 2: assistant 消息含 tool_use
+  const norm2 = analyzer.normalizeEntry({
+    type: 'assistant',
+    message: {
       role: 'assistant',
-      content: 'Hello!'
+      content: [
+        { type: 'tool_use', id: 'toolu_1', name: 'Edit', input: {} },
+        { type: 'text', text: 'Editing the file...' }
+      ]
     }
-  ];
-  const result5 = analyzer.analyzeMessages(messages5);
-  assert(result5 === null, '简单对话不应触发通知');
-  console.log('✅ 测试 5 通过: 简单对话不触发通知');
+  });
+  assert(norm2.role === 'assistant', 'role 应为 assistant');
+  assert(norm2.tool_uses.length === 1 && norm2.tool_uses[0].name === 'Edit', '工具名应为 Edit');
+  assert(norm2.content === 'Editing the file...', '文本内容应正确提取');
+  console.log('✅ 测试 2 通过: 解析 assistant 消息含 tool_use');
+
+  // 测试 3: assistant 纯文本（忽略 thinking）
+  const norm3 = analyzer.normalizeEntry({
+    type: 'assistant',
+    message: {
+      role: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'Let me think...' },
+        { type: 'text', text: 'Here is my answer.' }
+      ]
+    }
+  });
+  assert(!norm3.tool_uses, '不应有工具使用');
+  assert(norm3.content === 'Here is my answer.', '应只提取 text block');
+  console.log('✅ 测试 3 通过: 解析 assistant 纯文本（忽略 thinking）');
+
+  // 测试 4: system 消息（content 在顶层）
+  const norm4 = analyzer.normalizeEntry({
+    type: 'system',
+    subtype: 'info',
+    content: 'Session limit reached.'
+  });
+  assert(norm4.role === 'system', 'role 应为 system');
+  assert(norm4.content === 'Session limit reached.', '应提取 content');
+  console.log('✅ 测试 4 通过: 解析 system 消息');
+
+  // ---- analyzeMessages（使用规范化后的消息） ----
+
+  // 测试 5: 任务完成
+  const msgs5 = [
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Write', input: {} }] } },
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Done.' }] } }
+  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
+  assert(analyzer.analyzeMessages(msgs5) === 'task_complete', '应检测到任务完成');
+  console.log('✅ 测试 5 通过: 任务完成');
+
+  // 测试 6: 审查完成
+  const msgs6 = [
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't2', name: 'Read', input: {} }, { type: 'tool_use', id: 't3', name: 'Grep', input: {} }] } },
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Analysis: ' + 'x'.repeat(300) }] } }
+  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
+  assert(analyzer.analyzeMessages(msgs6) === 'review_complete', '应检测到审查完成');
+  console.log('✅ 测试 6 通过: 审查完成');
+
+  // 测试 7: Session Limit
+  const msgs7 = [
+    { type: 'system', content: 'Session limit reached. Please start a new session.' }
+  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
+  assert(analyzer.analyzeMessages(msgs7) === 'session_limit', '应检测到 Session Limit');
+  console.log('✅ 测试 7 通过: Session Limit');
+
+  // 测试 8: API Error
+  const msgs8 = [
+    { type: 'system', content: 'API Error: 401 Unauthorized. Please run /login to authenticate.' }
+  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
+  assert(analyzer.analyzeMessages(msgs8) === 'api_error', '应检测到 API Error');
+  console.log('✅ 测试 8 通过: API Error');
+
+  // 测试 9: 简单对话不触发通知
+  const msgs9 = [
+    { type: 'user', message: { role: 'user', content: 'Hello' } },
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Hi!' }] } }
+  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
+  assert(analyzer.analyzeMessages(msgs9) === null, '简单对话不应触发通知');
+  console.log('✅ 测试 9 通过: 简单对话不触发通知');
 
   console.log('');
   console.log('✅ StateAnalyzer 所有测试通过！');
