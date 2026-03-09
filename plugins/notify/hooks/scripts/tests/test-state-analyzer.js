@@ -67,21 +67,13 @@ function testStateAnalyzer() {
 
   // ---- analyzeMessages（使用规范化后的消息） ----
 
-  // 测试 5: 单次工具调用不触发通知（阈值 >= 2）
+  // 测试 5: 单次工具调用触发任务完成（阈值 >= 1）
   const msgs5 = [
     { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Write', input: {} }] } },
     { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Done.' }] } }
   ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
-  assert(analyzer.analyzeMessages(msgs5) === null, '单次工具调用不应触发通知');
-  console.log('✅ 测试 5 通过: 单次工具调用不触发通知');
-
-  // 测试 5b: 多次工具调用触发任务完成
-  const msgs5b = [
-    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Read', input: {} }, { type: 'tool_use', id: 't2', name: 'Edit', input: {} }] } },
-    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Done editing.' }] } }
-  ].map(e => analyzer.normalizeEntry(e)).filter(Boolean);
-  assert(analyzer.analyzeMessages(msgs5b) === 'task_complete', '多次工具调用应触发任务完成');
-  console.log('✅ 测试 5b 通过: 多次工具调用触发任务完成');
+  assert(analyzer.analyzeMessages(msgs5) === 'task_complete', '单次工具调用应触发任务完成');
+  console.log('✅ 测试 5 通过: 单次工具调用触发任务完成');
 
   // 测试 6: 读取工具也算任务完成（>= 2 次调用）
   const msgs6 = [

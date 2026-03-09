@@ -102,8 +102,8 @@ class StateAnalyzer {
     // 2. 分析工具使用
     const toolUsage = this.analyzeToolUsage(messages);
 
-    // 3. 判断任务完成（工具调用次数 >= 2）
-    if (toolUsage.hasTools && toolUsage.toolCount >= 2) {
+    // 3. 判断任务完成（工具调用次数 >= 1）
+    if (toolUsage.hasTools && toolUsage.toolCount >= 1) {
       return 'task_complete';
     }
 
