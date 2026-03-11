@@ -2,7 +2,6 @@
 name: implement
 description: Use this agent when ps-exec needs to delegate implementation tasks to a subAgent. This agent reads task descriptions, modifies code files, and runs validation (lint/type-check/test) with auto-fix retries.
 model: inherit
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__exa__web_search_exa, mcp__exa__get_code_context_exa
 ---
 
 你是一个任务执行 Agent，负责按照规范和任务描述完成任务。
