@@ -17,7 +17,7 @@ argument-hint: 可选 计划文件路径
 
 **示例：**
 ```bash
-/ps-exec docs/spec/user-auth-20251229.md
+/ps-exec docs/spec/20260311-1030-user-auth.md
 /ps-exec  # 自动选择最新的计划文件或继续未完成任务
 ```
 
@@ -60,8 +60,8 @@ source: docs/spec/xxx.md
 status: 进行中 | 已完成 | 已暂停
 created: 2025-01-03T10:00:00
 updated: 2025-01-03T12:30:00
-branch: feature/user-auth-20251229
-worktree: /absolute/path/to/project-feature-user-auth-20251229
+branch: feature/20260311-1030-user-auth
+worktree: /absolute/path/to/project-20260311-1030-user-auth
 base_branch: main
 ---
 ```
@@ -99,25 +99,24 @@ base_branch: main
 
 #### 2.5.2 生成分支名和 Worktree 路径
 
-```bash
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
-PROJECT_DIR=$(basename "$PROJECT_ROOT")
-# PLAN_BASENAME = 计划文件名去除扩展名，例如 user-auth-20251229
-BRANCH_NAME="feature/${PLAN_BASENAME}"
-WORKTREE_PATH="${PROJECT_ROOT}/../${PROJECT_DIR}-${PLAN_BASENAME}"
-```
+1. 使用 `git rev-parse --show-toplevel` 获取项目根目录，记为 `PROJECT_ROOT`
+2. 从 `PROJECT_ROOT` 路径中提取项目目录名，记为 `PROJECT_DIR`
+3. 取计划文件名去除 `.md` 后的部分，记为 `PLAN_BASENAME`
+   - 例如：`20260311-1030-user-auth.md` → `20260311-1030-user-auth`
+4. 生成分支名：`feature/<PLAN_BASENAME>`
+5. 生成 worktree 路径：`<PROJECT_ROOT 的同级目录>/<PROJECT_DIR>-<PLAN_BASENAME>`
 
 - **分支名格式**：`feature/<计划文件名去除扩展名>`
-- **Worktree 路径**：与项目目录同级，名称为 `<项目目录名>-<计划文件名>`
+- **Worktree 路径**：与项目目录同级，名称为 `<项目目录名>-<计划文件名去除扩展名>`
 
 #### 2.5.3 创建 Worktree
 
 ```bash
-git worktree add "${WORKTREE_PATH}" -b "${BRANCH_NAME}"
+git worktree add "<WORKTREE_PATH>" -b "<BRANCH_NAME>"
 ```
 
 **失败处理：**
-- 分支名已存在 → 自动重试（不带 -b）：`git worktree add "${WORKTREE_PATH}" "${BRANCH_NAME}"`
+- 分支名已存在 → 自动重试（不带 -b）：`git worktree add "<WORKTREE_PATH>" "<BRANCH_NAME>"`
 - 其他失败 → 使用 AskUserQuestion 询问：跳过 worktree 继续 / 中止执行
 
 **验证：**
@@ -133,30 +132,26 @@ git worktree list
 
 ##### 1. 读取 worktree.yaml
 
-在 `${PROJECT_ROOT}` 下检测 `worktree.yaml` 文件：
+在 `<项目根目录>` 下检测 `worktree.yaml` 文件：
 
 - **存在** → 读取并按配置执行下述步骤 2~3
 - **不存在** → 手动分析项目类型并执行初始化
 
 ##### 2. 执行 copy
 
-将 `worktree.yaml` 中 `copy` 列表的文件从 `${PROJECT_ROOT}` 复制到 `${WORKTREE_PATH}`：
+将 `worktree.yaml` 中 `copy` 列表的文件从 `<项目根目录>` 复制到 `<WORKTREE_PATH>`：
 
-```bash
-# 逐项复制，文件不存在则静默跳过
-for file in <copy 列表>; do
-  [ -f "${PROJECT_ROOT}/${file}" ] && cp "${PROJECT_ROOT}/${file}" "${WORKTREE_PATH}/"
-done
-```
+- 逐项读取 `copy` 列表中的相对路径
+- 如果源文件存在，则复制到 worktree 中对应的相对路径
+- 如目标父目录不存在，先创建父目录
+- 如果源文件不存在，记录为“已跳过”，不要报错中断
 
 ##### 3. 执行 post_create
 
-在 `${WORKTREE_PATH}` 下按序执行 `post_create` 列表中的命令：
+在 `<WORKTREE_PATH>` 下按序执行 `post_create` 列表中的命令：
 
-```bash
-cd "${WORKTREE_PATH}"
-# 按序执行每条命令，timeout: 600000（10分钟）
-```
+- 每条命令的默认超时为 600000ms（10 分钟）
+- 任一命令失败时，使用 AskUserQuestion 询问用户：继续执行 / 中止执行
 
 - 命令失败 → 使用 AskUserQuestion 询问用户：继续执行 / 中止执行
 
@@ -172,19 +167,20 @@ cd "${WORKTREE_PATH}"
 **从计划文件创建对应的任务执行文件：**
 
 1. **确定文件名**：将计划文件名的 `.md` 替换为 `.task.md`
-   - 例如：`user-auth-20251229.md` → `user-auth-20251229.task.md`
+   - 例如：`20260311-1030-user-auth.md` → `20260311-1030-user-auth.task.md`
 2. **确定存储位置**：与计划文件同目录（docs/spec/）
 3. **读取计划文件**，提取以下信息：
    - 任务名称（从标题提取）
-   - 执行步骤（从"## 方案 > ### 执行步骤"章节提取）
-   - 注意事项（从"### 注意事项"章节提取）
+   - 执行步骤（从 `## 5. 执行步骤` 章节提取）
+   - 步骤依赖（从 `### 步骤依赖` 章节提取）
+   - 注意事项（优先从 `## 8. 注意事项` 章节提取；如果不存在则视为空）
 4. **解析步骤依赖，生成 TODO 列表**：
-   - 解析"### 步骤依赖"章节，建立步骤依赖图（哪些步骤可并行，哪些需等待）
+   - 解析 `### 步骤依赖` 章节，建立步骤依赖图（哪些步骤可并行，哪些需等待）
    - 解析所有步骤和任务，按步骤依赖顺序排列
 5. **创建 task.md 文件**（TODO 列表格式）
 
 **步骤依赖解析：**
-- 读取"### 步骤依赖"章节的表格
+- 读取 `### 步骤依赖` 章节的表格
 - 依赖为 `-` 的步骤：无前置依赖，可与其他无依赖步骤并行执行
 - 依赖为步骤名的步骤：必须等列出的步骤全部完成后才能开始
 - 步骤内部的任务始终顺序执行
@@ -197,7 +193,7 @@ source: [计划文件路径]
 status: 进行中
 created: [当前时间]
 updated: [当前时间]
-branch: [分支名，如 feature/user-auth-20251229；无 worktree 则留空]
+branch: [分支名，如 feature/20260311-1030-user-auth；无 worktree 则留空]
 worktree: [worktree 绝对路径；无 worktree 则留空]
 base_branch: [基础分支名，如 main；无 worktree 则留空]
 ---
@@ -344,8 +340,8 @@ TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
    - 否则 → AI 自动推断：检测 package.json scripts 中的 lint/typecheck/test/build 命令并执行
 
 2. **运行验证**：
-   - 在 `${WORKTREE_PATH}`（或当前目录）下按序执行验证命令
-   - 所有命令返回 0 才算验证通过
+    - 在 `<WORKTREE_PATH>`（或当前目录）下按序执行验证命令
+    - 所有命令返回 0 才算验证通过
 
 3. **生成验证报告**（输出到控制台）：
 ```
@@ -370,6 +366,9 @@ source: [计划文件路径]
 status: 已完成
 created: [创建时间]
 updated: [当前时间]
+branch: [分支名，如 feature/20260311-1030-user-auth；无 worktree 则保留为空]
+worktree: [worktree 绝对路径；无 worktree 则保留为空]
+base_branch: [基础分支名，如 main；无 worktree 则保留为空]
 ---
 ```
 
@@ -384,20 +383,18 @@ updated: [当前时间]
 
 按顺序检测是否安装以下工具：
 ```bash
-which codex 2>/dev/null && echo "codex available"
+codex --version
 ```
 
 #### 6.2 启动独立 Review
 
 如过已经安装 codex，那么**必须使用 codex** 进行代码 review
 
-```bash
-mkdir -p tmp
-REVIEW="tmp/codex-review-$RANDOM.txt"
-codex exec -o "$REVIEW" "[PROMPT]" --full-auto &> /dev/null && echo "codex review 完成" || echo "codex review 失败"
-```
-
-执行完成后，使用 Read 工具读取 `$REVIEW` 文件获取 review 结果。
+执行流程：
+- 在当前仓库下准备一个临时输出文件，例如 `tmp/codex-review.txt`
+- 运行 `codex exec -o "<review-file>" "[PROMPT]" --full-auto`
+- 命令成功后，使用 Read 工具读取 `<review-file>` 获取 review 结果
+- 如果命令失败，则降级到独立 subAgent review
 
 未安装 codex，使用独立 subAgent
 
@@ -502,29 +499,17 @@ Agent(
 #### 6.5 执行用户选择
 
 **选项 A：合并到基础分支**
-```bash
-git checkout "${BASE_BRANCH}"
-git merge --no-ff "${BRANCH_NAME}" -m "feat: merge ${BRANCH_NAME}"
-# 合并冲突 → 进入错误处理
-```
+执行流程：
+- 先定位原项目根目录（task.md 所在项目，而不是 worktree 目录）
+- 在原项目根目录下切换到 `<BASE_BRANCH>`
+- 在原项目根目录下执行 `git merge --no-ff "<BRANCH_NAME>" -m "feat: merge <BRANCH_NAME>"`
+- 如果发生合并冲突，进入错误处理
 
 **选项 B：创建 Pull Request**
-```bash
-cd "${WORKTREE_PATH}"
-git push -u origin "${BRANCH_NAME}"
-gh pr create \
-  --title "[任务名称]" \
-  --body "$(cat << 'EOF'
-## 变更说明
-[来自 review 报告的摘要]
-
-## 计划完成情况
-[来自 task.md 的统计]
-EOF
-)" \
-  --base "${BASE_BRANCH}" \
-  --head "${BRANCH_NAME}"
-```
+执行流程：
+- 在 `<WORKTREE_PATH>` 下推送分支：`git push -u origin "<BRANCH_NAME>"`
+- 准备 PR 标题和正文内容
+- 调用 `gh pr create --title "<标题>" --body "<正文>" --base "<BASE_BRANCH>" --head "<BRANCH_NAME>"`
 
 **选项 C：暂不处理**
 更新 task.md 状态为"已暂停"，告知用户 worktree 路径和分支名
@@ -674,9 +659,9 @@ git merge --abort
    - Review 结果由独立上下文生成，确保客观性
 
 9. **分支名规范**：
-   - 格式：`feature/<计划文件名去除扩展名>`
-   - 计划文件名中的特殊字符（空格、中文等）替换为连字符
-   - 示例：`feature/user-auth-20251229`
+    - 格式：`feature/<计划文件名去除扩展名>`
+    - 计划文件名中的特殊字符（空格、中文等）替换为连字符
+    - 示例：`feature/20260311-1030-user-auth`
 
 10. **Worktree 环境初始化**：
     - 优先读取项目根目录的 `worktree.yaml` 配置文件驱动初始化

@@ -15,11 +15,12 @@ my-claude-marketplaces/
 │   │   │   └── plugin.json                     # 插件配置
 │   │   ├── commands/
 │   │   │   ├── ps-init.md                      # /ps-init 命令
-│   │   │   └── ps-plan.md                      # /ps-plan 命令
-│   │   ├── interactiveplanning/
-│   │   │   ├── SKILL.md                        # Interactive Planning Skill
-│   │   │   ├── examples/                       # 示例文档
-│   │   │   └── references/                     # 参考文档
+│   │   │   ├── ps-plan.md                      # /ps-plan 命令
+│   │   │   └── ps-exec.md                      # /ps-exec 命令
+│   │   ├── skills/
+│   │   │   └── planning/
+│   │   │       ├── SKILL.md                    # planning skill
+│   │   │       └── examples/                   # 计划模板
 │   │   └── README.md
 │   │
 │   └── team-context/                           # 团队知识上下文插件
@@ -48,17 +49,19 @@ my-claude-marketplaces/
 **功能：**
 - `/ps-init` - 初始化项目文档结构（CLAUDE.md 和 docs/）
 - `/ps-plan` - 交互式计划制定
-- Interactive Planning Skill - 自然语言触发的计划制定
+- `/ps-exec` - 按计划执行任务并维护 `.task.md`
+- `planning` skill - 自然语言触发的计划制定
 
 **核心文件：**
 - `plugins/project-spec/commands/ps-init.md` - 文档初始化命令
 - `plugins/project-spec/commands/ps-plan.md` - 计划制定命令
-- `plugins/project-spec/skills/SKILL.md` - Interactive Planning Skill 定义
+- `plugins/project-spec/commands/ps-exec.md` - 计划执行命令
+- `plugins/project-spec/skills/planning/SKILL.md` - planning skill 定义
 
 **输出：**
 - `CLAUDE.md` - 项目文档（由 ps-init 生成）
 - `docs/` - 详细文档目录（由 ps-init 生成）
-- `docs/spec/[功能名称]-[时间戳].md` - 实施计划（由 ps-plan 生成）
+- `docs/spec/[YYYYMMDD-HHmm]-[功能名称].md` - 实施计划（由 ps-plan 生成）
 
 ---
 
@@ -118,8 +121,8 @@ claude-code plugins link my-claude-marketplaces
 ### 更新团队知识
 
 ```bash
-# 编辑知识文件
-vim docs/team-context.md
+# 使用你当前环境可用的编辑器打开知识文件
+[编辑器命令] docs/team-context.md
 
 # 提交到 Git
 git add docs/team-context.md
