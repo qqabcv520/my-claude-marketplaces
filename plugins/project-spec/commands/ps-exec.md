@@ -440,8 +440,11 @@ Agent(
   - 执行 `git merge --no-ff "<BRANCH_NAME>" -m "feat: merge <BRANCH_NAME>"`
   - 成功后把 task.md 写为 `已完成`
 - 创建 Pull Request：
-  - 在 `<WORKTREE_PATH>` 下执行 `git push -u origin "<BRANCH_NAME>"`
-  - 执行 `gh pr create ...`
+  - 先在 `<WORKTREE_PATH>` 下执行 `git fetch origin "<BASE_BRANCH>"`
+  - 确认当前分支与 `origin/<BASE_BRANCH>` 是否存在冲突
+  - 如果有冲突：先在当前 worktree 解决冲突，并重新执行受影响的验证；冲突未解决前**不得**继续 push 或创建 PR
+  - 确认无冲突后，再执行 `git push -u origin "<BRANCH_NAME>"`
+  - 最后执行 `gh pr create ...`
   - 成功后把 task.md 写为 `已完成`
 - 暂不处理：
   - task.md 写为 `已暂停`
@@ -511,6 +514,14 @@ Agent(
 - 保留当前 worktree / 分支
 - 把 task.md 写为 `已暂停`
 - 输出失败原因和建议的人工处理方式
+
+
+### G. 执行 compact 后
+
+执行过程中无论是系统自动压缩还是手动执行 `/compact`，压缩完成后必须立即：
+
+1. 用 Read 工具重新读取计划文档和 task.md
+2. 确认当前步骤状态、执行环境（worktree/分支）、验证和 review 状态后再继续
 
 ---
 
