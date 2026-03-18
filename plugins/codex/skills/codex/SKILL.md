@@ -1,5 +1,5 @@
 ---
-name: Codex
+name: codex
 description: 当用户提到 Codex CLI、想用 codex 分析代码、或需要 codex debug/review 帮助时使用此 skill。提供 Codex CLI 的核心用法、常用参数和最佳实践。触发短语包括："用 codex"、"codex debug"、"codex review"、"让 codex 看看"、"codex 分析"、"codex exec"、"codex 帮我"、"用 codex 检查"、"安装 codex"、"codex 怎么安装"、"codex 没安装"、"codex 配置"、"codex api key"。
 version: 1.0.0
 ---
